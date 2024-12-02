@@ -13,7 +13,7 @@ iniPath = (f"{dir}/config.ini")
 def main():
     root = CTk.CTk()
     root.title("Database Manager")
-    root.geometry("300x300")
+    root.geometry("900x300")
 
     if os.path.isfile(iniPath):
         data = readIni()
@@ -28,10 +28,12 @@ def main():
 
     conn, database = db.dbType(data, fileType)
 
-    changeDbBtn = CTk.CTkButton(master=root, text="Edit entries", command = changeDB()).place(relx=7, rely=1)
-    editBtn = CTk.CTkButton(master=root, text="Edit entries", command = editData()).place(relx=1, rely=1)
-    addBtn = CTk.CTkButton(master=root, text="Add entries", command = addData()).place(relx=3, rely=1)
-    deleteBtn = CTk.CTkButton(master=root, text="Delete entries", command = deleteData()).place(relx=5, rely=1)
+    changeDbBtn = CTk.CTkButton(master=root, text="Change working DB", command =  lambda: getDatabase()).place(relx=.7, rely=.1)
+    editBtn = CTk.CTkButton(master=root, text="Edit entries", command =  lambda:editData()).place(relx=.1, rely=.1)
+    addBtn = CTk.CTkButton(master=root, text="Add entries", command = lambda: addData()).place(relx=.3, rely=.1)
+    deleteBtn = CTk.CTkButton(master=root, text="Delete entries", command =  lambda: deleteData()).place(relx=.5, rely=.1)
+
+    dbLabel = CTk.CTkLabel(master=root, text=f"{data}").place(relx=.2, rely=.2)
 
     root.mainloop()
 
@@ -84,10 +86,36 @@ def getDatabase():
     # If the user selected a file (i.e., not canceled)
     if filePath:
         print(f"Selected file: {filePath}")
+
+        if os.path.isfile(iniPath):
+            updateIni(filePath)
+            _, fileType = os.path.splitext(filePath)
+            conn, database = db.dbType(filePath, fileType)
+
         return filePath
     else:
         print("No file selected.")
         return None
+
+def updateIni(newDB):
+    # Create a ConfigParser object
+    config = configparser.ConfigParser()
+    
+    # Read the existing INI file
+    config.read(iniPath)
+    
+    # Check if the 'General' section exists, if not, create it
+    if 'General' not in config.sections():
+        config.add_section('General')
+    
+    # Update the 'database' key with the new path
+    config.set('General', 'database', newDB)
+    
+    # Write the updated configuration back to the INI file
+    with open(iniPath, 'w') as configfile:
+        config.write(configfile)
+    
+    print(f"Database path updated to: {newDB}")
 
 if __name__ == '__main__':
     main()
