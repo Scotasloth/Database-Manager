@@ -1,25 +1,43 @@
 import os
 import sqlite3
 import sys
-
-db = 'gamedata.db'  # Database file name
-dir = sys.path[0]
+import pyodbc
 
 def dbType(db, type):
-    if type == "access":
-        connAccess()
-    elif type == "sqlite":
-        connSqlite()
+    if type == ".accdb":
+        conn, database =  connAccess(db)
+        return conn, database
+    
+    elif type == ".db":
+        conn, database = connSqlite(db)
+        return conn, database
+    
     else:
         print(f"Type {type} is not valid")
 
-def connAccess():
-    return
+def connAccess(db):
+    
+    print (db)
+    conn_str = (
+        r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'  # ODBC driver for Access
+        f'DBQ={db};'  # Full path to the .accdb database
+    )
+    
+    try:
+        # Attempt to connect to the database
+        conn = pyodbc.connect(conn_str)    
+        database = conn.cursor()  # Create a cursor for executing SQL queries
+        print("Connection opened")
 
-def connSqlite():
-    """Connect to the SQLite database and return a database cursor."""
-    db_path = os.path.join(dir, db)  # Path to the database file
-    conn = sqlite3.connect(db_path)  # Connect to the SQLite database
+        return conn, database  # Return both the connection and cursor
+    
+    except Exception as e:
+        print(f"Error: {e}")
+        
+
+def connSqlite(db):
+    """Connect to the SQLite database and return a database cursor.""" 
+    conn = sqlite3.connect(db)  # Connect to the SQLite database
     database = conn.cursor()  # Create a cursor for executing SQL queries
     print("Connection opened")
     return conn, database  # Return both the connection and cursor
