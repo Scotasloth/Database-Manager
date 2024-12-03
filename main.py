@@ -18,14 +18,67 @@ def main():
 
     changeDbBtn = CTkButton(master=root, text="Change working DB", command =  lambda: getDatabase()).place(relx=.7, rely=.1)
     editBtn = CTkButton(master=root, text="Edit entries", command=lambda: editDataWin(root)).place(relx=.1, rely=.1)
-    addBtn = CTkButton(master=root, text="Add entries", command = lambda: addDataWin(root)).place(relx=.3, rely=.1)
+    addBtn = CTkButton(master=root, text="Add entries", command = lambda: addDataTableWin(root)).place(relx=.3, rely=.1)
     deleteBtn = CTkButton(master=root, text="Delete entries", command =  lambda: deleteDataWin(root)).place(relx=.5, rely=.1)
 
     dbLabel = CTkLabel(master=root, text=f"{data}").place(relx=.2, rely=.2)
 
     root.mainloop()
 
-def addDataWin():
+def addDataTableWin(root):
+    addWin = CTkToplevel(root)
+    addWin.title("Add Data")
+    addWin.geometry("200x300")
+
+    table = StringVar()
+
+    tableEntry = CTkEntry(master=addWin, placeholder_text="Enter the table", textvariable=table)
+    tableEntry.pack(pady=10)
+
+    submitBtn = CTkButton(master=addWin, text="Submit", command=lambda: addInputs(root, table.get()))
+    submitBtn.pack(pady=10)
+
+def addInputs(root, table):
+    rowWin = CTkToplevel(root)
+    rowWin.title("Row Info")
+    rowWin.geometry("300x400")
+
+    columns = getColumns(table)
+    entryVars = {}
+
+    for column in columns:
+        entryVars[column] = StringVar()
+
+        entry = CTkEntry(master=rowWin, textvariable=entryVars[column], placeholder_text=f"Enter {column}", font=("Arial", 14), width=250)
+        entry.pack(pady=5)
+
+    submitBtn = CTkButton(master=rowWin, text="Submit", command=lambda: addData())
+
+def getColumns(table):
+    print(table)
+    if fileType == ".db":
+        cursor = conn.cursor()
+        cursor.execute(f"PRAGMA table_info({table});")
+
+        columns = [row[1] for row in cursor.fetchall()]
+
+        print(columns)
+
+    elif fileType == ".accdb":
+        cursor = conn.cursor()
+        cursor.execute(f"""
+            SELECT ColumnName
+            FROM MSysColumns
+            WHERE TableName = '{table}'
+            ORDER BY OrdinalPosition;
+        """)
+
+        # Fetch the column names
+        columns = [row.ColumnName for row in cursor.fetchall()]
+
+    return columns
+
+def addData():
     return
 
 def deleteDataWin():
