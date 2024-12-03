@@ -104,8 +104,87 @@ def addData(vals, table):
     # Commit the transaction
     conn.commit()
 
-def deleteDataWin():
+def deleteDataWin(root):
+    delWin = CTkToplevel(root)
+    delWin.title("Delete Data")
+    delWin.geometry("300x400")
+
+    options = ["Table", "Row", "Column"]
+
+    box = CTkComboBox(master=delWin, values=options, command=lambda value: delInputs(value, root))
+    box.pack(pady=5)
+
     return
+
+def delInputs(choice, root):
+    delWin = CTkToplevel(root)
+    delWin.title("Delete Data")
+    delWin.geometry("300x400")
+    userInput = StringVar()
+    table = StringVar()
+    
+    try:
+        if choice == "Table":
+            print (choice)
+            tableEntry = CTkEntry(master=delWin, placeholder_text="What table do you want to delete?", textvariable=userInput)
+            tableEntry.pack(pady=5)
+
+            submitBtn = CTkButton(master=delWin, text="Submit", command=lambda: delTable(userInput.get()))
+            submitBtn.pack(pady=5)
+        
+        elif choice == "Row":
+            print(choice)
+            row = CTkEntry(master=delWin, placeholder_text="What row do you want to delete?(Give primary key for row)", textvariable=userInput)
+            row.pack(pady=5)
+
+            table = CTkEntry(master=delWin, placeholder_text="What table do you want to delete?", textvariable=table)
+            table.pack(pady=5)
+            
+            submitBtn = CTkButton(master=delWin, text="Submit", command=lambda: delRow(table.get(), userInput.get()))
+            submitBtn.pack(pady=5)
+
+        elif choice == "Column":
+            print(choice)
+            column = CTkEntry(master=delWin, placeholder_text="What column do you want to delete?", textvariable=userInput)
+            column.pack(pady=5)
+
+            table = CTkEntry(master=delWin, placeholder_text="What table do you want to delete?", textvariable=table)
+            table.pack(pady=5)
+            
+            submitBtn = CTkButton(master=delWin, text="Submit", command=lambda: delCol(table.get(), userInput.get()))
+            submitBtn.pack(pady=5)
+        
+    except Exception as e:
+        print(f"Error {e}")
+
+def delRow(table, input):
+    return
+
+def delCol(table, input):
+    return
+
+def delTable(input):
+    cursor = conn.cursor()
+
+    if fileType == ".db":
+        # Construct the SQL command
+        sql = f"DROP TABLE IF EXISTS {input};"
+
+        try:
+            # Execute the SQL command to drop the table
+            cursor.execute(sql)
+            print(f"Table {input} has been deleted.")
+
+        except sqlite3.Error as e:
+            print(f"An error occurred: {e}")
+            
+        finally:
+            # Commit the changes and close the connection
+            conn.commit()
+    
+    elif fileType == ".accdb":
+        print("Access")
+
 
 def editDataWin(root):
     # Create a new window for editing the data
