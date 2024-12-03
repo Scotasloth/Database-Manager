@@ -1,7 +1,7 @@
 import pyodbc
 import sqlite3
-import customtkinter as CTk
 from tkinter import filedialog
+from customtkinter import *
 import connect as db
 import os
 import sys
@@ -11,44 +11,95 @@ dir = os.getcwd()
 iniPath = (f"{dir}/config.ini")
 
 def main():
-    root = CTk.CTk()
+    root = CTk()
     root.title("Database Manager")
     root.geometry("900x300")
+    set_appearance_mode("dark") 
 
-    if os.path.isfile(iniPath):
-        data = readIni()
-        _, fileType = os.path.splitext(data)
-        print(data)
-        print(fileType)
-    else:
-        print("INI not found making file")
-        data = getDatabase()
-        makeIni(data)
-        _, fileType = os.path.splitext(data)
+    changeDbBtn = CTkButton(master=root, text="Change working DB", command =  lambda: getDatabase()).place(relx=.7, rely=.1)
+    editBtn = CTkButton(master=root, text="Edit entries", command=lambda: editDataWin(root)).place(relx=.1, rely=.1)
+    addBtn = CTkButton(master=root, text="Add entries", command = lambda: addDataWin(root)).place(relx=.3, rely=.1)
+    deleteBtn = CTkButton(master=root, text="Delete entries", command =  lambda: deleteDataWin(root)).place(relx=.5, rely=.1)
 
-    conn, database = db.dbType(data, fileType)
-
-    changeDbBtn = CTk.CTkButton(master=root, text="Change working DB", command =  lambda: getDatabase()).place(relx=.7, rely=.1)
-    editBtn = CTk.CTkButton(master=root, text="Edit entries", command =  lambda:editData()).place(relx=.1, rely=.1)
-    addBtn = CTk.CTkButton(master=root, text="Add entries", command = lambda: addData()).place(relx=.3, rely=.1)
-    deleteBtn = CTk.CTkButton(master=root, text="Delete entries", command =  lambda: deleteData()).place(relx=.5, rely=.1)
-
-    dbLabel = CTk.CTkLabel(master=root, text=f"{data}").place(relx=.2, rely=.2)
+    dbLabel = CTkLabel(master=root, text=f"{data}").place(relx=.2, rely=.2)
 
     root.mainloop()
 
-def addData():
+def addDataWin():
     return
 
-def deleteData():
-    return 
-
-def editData():
+def deleteDataWin():
     return
 
-def changeDB():
-    return
+def editDataWin(root):
+    # Create a new window for editing the data
+    print("Making edit window")
 
+    # Entry variables
+    table = StringVar()
+    col = StringVar()
+    oldVal = StringVar()
+    newVal = StringVar()
+    
+    editWin = CTkToplevel(root)
+    editWin.title("Update Table")
+    editWin.geometry("400x300")
+
+    # Create three entry boxes
+    tableEntry = CTkEntry(editWin, textvariable=table, placeholder_text="Enter table name", font=("Arial", 14), width=250)
+    tableEntry.pack(pady=10)
+
+    colEntry = CTkEntry(editWin, textvariable=col, placeholder_text="Enter row name", font=("Arial", 14), width=250)
+    colEntry.pack(pady=10)
+
+    oldEntry = CTkEntry(editWin, textvariable=oldVal, placeholder_text="Enter old value", font=("Arial", 14), width=250)
+    oldEntry.pack(pady=10)
+
+    newEntry = CTkEntry(editWin, textvariable=newVal, placeholder_text="Enter new value", font=("Arial", 14), width=250)
+    newEntry.pack(pady=10)
+
+     # Submit button with validation
+    def onSubmit():
+        # Print the current values to see if they are being populated
+        print(f"Table: '{table.get()}'")
+        print(f"Column: '{col.get()}'")
+        print(f"Old Value: '{oldVal.get()}'")
+        print(f"New Value: '{newVal.get()}'")
+
+        editData(table.get(), col.get(), oldVal.get(), newVal.get(), editWin)
+
+    # Submit button
+    submitBtn = CTkButton(master=editWin, text="Submit", command=onSubmit)
+    submitBtn.pack(pady=10)
+
+    editWin.mainloop()  # Ensure the window stays open until the user interacts with it
+
+def editData(table, col, oldVal, newVal, editWin):
+    # This function is called after the user presses the Submit button
+    print("Inside editData:")
+    print(f"Table: {table}")  # Should print the table value entered
+    print(f"Row: {col}")
+    print(f"Old Value: {oldVal}")  # Should print the old value entered
+    print(f"New Value: {newVal}")  # Should print the new value entered
+
+    try:
+        if fileType == ".accdb":
+            print("Access")
+
+            conn.execute(f"UPDATE {table} SET {col} = ? WHERE {col} = ?", (newVal, oldVal,))
+            conn.commit()
+
+        elif fileType == ".db":
+            print("SQLite")
+
+            conn.execute(f"UPDATE {table} SET {col} = ? WHERE {col} = ?", (newVal, oldVal,))
+            conn.commit()
+
+    except Exception as e:
+        print ("Error: {e}")
+    # Optionally, close the edit window after submission
+    #editWin.destroy()
+    
 def makeIni(data):
     # Create an instance of ConfigParser
     config = configparser.ConfigParser()
@@ -93,6 +144,7 @@ def getDatabase():
             conn, database = db.dbType(filePath, fileType)
 
         return filePath
+    
     else:
         print("No file selected.")
         return None
@@ -118,4 +170,16 @@ def updateIni(newDB):
     print(f"Database path updated to: {newDB}")
 
 if __name__ == '__main__':
+    if os.path.isfile(iniPath):
+        data = readIni()
+        _, fileType = os.path.splitext(data)
+        print(data)
+        print(fileType)
+    else:
+        print("INI not found making file")
+        data = getDatabase()
+        makeIni(data)
+        _, fileType = os.path.splitext(data)
+
+    conn, database = db.dbType(data, fileType)
     main()
