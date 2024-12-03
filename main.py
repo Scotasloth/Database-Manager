@@ -41,18 +41,26 @@ def addDataTableWin(root):
 def addInputs(root, table):
     rowWin = CTkToplevel(root)
     rowWin.title("Row Info")
-    rowWin.geometry("300x400")
+    rowWin.geometry("300x500")
 
     columns = getColumns(table)
     entryVars = {}
 
-    for column in columns:
+    for idx, column in enumerate(columns):
+        # Skip the first column (index 0)
+        if idx == 0:
+            continue
+
         entryVars[column] = StringVar()
 
-        entry = CTkEntry(master=rowWin, textvariable=entryVars[column], placeholder_text=f"Enter {column}", font=("Arial", 14), width=250)
+        label = CTkLabel(master=rowWin, text=f"Please enter {column}")
+        label.pack(pady=5)
+
+        entry = CTkEntry(master=rowWin, textvariable=entryVars[column], placeholder_text=(f"Enter {column}"), font=("Arial", 14), width=250)
         entry.pack(pady=5)
 
-    submitBtn = CTkButton(master=rowWin, text="Submit", command=lambda: addData())
+    submitBtn = CTkButton(master=rowWin, text="Submit", command=lambda: addData(entryVars, table))
+    submitBtn.pack(pady=5)
 
 def getColumns(table):
     print(table)
@@ -78,8 +86,23 @@ def getColumns(table):
 
     return columns
 
-def addData():
-    return
+def addData(vals, table):
+    cursor = conn.cursor()
+
+    for column, var in vals.items():
+        print(f" Data is {var.get()}")
+    
+    columns = [column for column in vals.keys()]
+    values = [vals[column].get() for column in vals]
+
+    placeholders = ', '.join(['?'] * len(values))  # For example, "?, ?, ?"
+    query = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({placeholders})"
+    
+    # Execute the query with the values
+    cursor.execute(query, values)
+    
+    # Commit the transaction
+    conn.commit()
 
 def deleteDataWin():
     return
