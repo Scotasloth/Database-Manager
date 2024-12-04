@@ -164,28 +164,42 @@ def delInputs(choice, root):
 def delRow(table, row, input):
     cursor = conn.cursor()
 
-    if fileType == ".db":
-        print("SQL")
+    try:
+        if fileType == ".db":
+            print("SQL")
 
-        cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
+            cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
 
-        cursor.execute()
+            cursor.execute()
 
-    elif fileType == ".accdb":
-        print("Access")
-        cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
+        elif fileType == ".accdb":
+            print("Access")
+            cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
 
-        cursor.commit()
+            cursor.commit()
+    
+    except Exception as e:
+        print(f"Error: {e}")
     
 
 def delCol(table, input):
     cursor = conn.cursor()
     
-    if fileType == ".db":
-        print("SQL")
+    try:
+        if fileType == ".db":
+            print("SQL")
+            cursor.execute(f"ALTER TABLE {table} DROP COLUMN {input}")
 
-    elif fileType == ".accdb":
-        print("Access")
+            cursor.commit()
+
+        elif fileType == ".accdb":
+            print("Access")
+            cursor.execute(f"ALTER TABLE {table} DROP COLUMN {input}")
+
+            cursor.commit()
+        
+    except Exception as e:
+        print(f"Error: {e}")
 
 def delTable(input):
     cursor = conn.cursor()
