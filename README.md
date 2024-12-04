@@ -27,13 +27,16 @@ pyodbc: Allows interaction with Access databases
 On first use it will ask for the location of your database and then create an INI file to store its location.
 
 - **Adding data
+
 The program will ask for the name of the table then for all the data you wish to insert into a row
 
 - **Editing data
+
 You will be prompted to give the table, row, current value and the new value you wish to change to.
 
 - **Deleting data
-TO BE ADDED
+
+You will be prompted to choose what type of data you want to delete (table, row, column). Put in the details required and then press submit.
 
 ## **Installation**
 
