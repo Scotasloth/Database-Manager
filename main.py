@@ -122,6 +122,7 @@ def delInputs(choice, root):
     delWin.geometry("300x400")
     userInput = StringVar()
     table = StringVar()
+    row = StringVar()
     
     try:
         if choice == "Table":
@@ -134,13 +135,16 @@ def delInputs(choice, root):
         
         elif choice == "Row":
             print(choice)
-            row = CTkEntry(master=delWin, placeholder_text="What row do you want to delete?(Give primary key for row)", textvariable=userInput)
+            rowVal = CTkEntry(master=delWin, placeholder_text="What row do you want to delete?(Give primary key for row)", textvariable=userInput)
+            rowVal.pack(pady=5)
+
+            row = CTkEntry(master=delWin, placeholder_text="What table do you want to delete?", textvariable=row)
             row.pack(pady=5)
 
             table = CTkEntry(master=delWin, placeholder_text="What table do you want to delete?", textvariable=table)
             table.pack(pady=5)
             
-            submitBtn = CTkButton(master=delWin, text="Submit", command=lambda: delRow(table.get(), userInput.get()))
+            submitBtn = CTkButton(master=delWin, text="Submit", command=lambda: delRow(table.get(), row.get(), userInput.get()))
             submitBtn.pack(pady=5)
 
         elif choice == "Column":
@@ -157,11 +161,31 @@ def delInputs(choice, root):
     except Exception as e:
         print(f"Error {e}")
 
-def delRow(table, input):
-    return
+def delRow(table, row, input):
+    cursor = conn.cursor()
+
+    if fileType == ".db":
+        print("SQL")
+
+        cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
+
+        cursor.execute()
+
+    elif fileType == ".accdb":
+        print("Access")
+        cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
+
+        cursor.commit()
+    
 
 def delCol(table, input):
-    return
+    cursor = conn.cursor()
+    
+    if fileType == ".db":
+        print("SQL")
+
+    elif fileType == ".accdb":
+        print("Access")
 
 def delTable(input):
     cursor = conn.cursor()
