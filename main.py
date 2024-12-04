@@ -177,14 +177,27 @@ def delTable(input):
 
         except sqlite3.Error as e:
             print(f"An error occurred: {e}")
-            
+
         finally:
             # Commit the changes and close the connection
             conn.commit()
     
     elif fileType == ".accdb":
-        print("Access")
+        # Construct the SQL command
+        sql = f"DROP TABLE {input};"
 
+        try:
+            # Execute the SQL command to drop the table
+            cursor.execute(sql)
+            print(f"Table {input} has been deleted.")
+        
+        except pyodbc.Error as e:
+            # Handle errors, such as table not existing
+            print(f"An error occurred: {e}")
+        
+        finally:
+            # Commit the changes and close the connection
+            conn.commit()
 
 def editDataWin(root):
     # Create a new window for editing the data
