@@ -4,7 +4,6 @@ from tkinter import filedialog
 from customtkinter import *
 import connect as db
 import os
-import sys
 import configparser
 
 dir = os.getcwd()
@@ -95,7 +94,7 @@ def addData(vals, table):
     columns = [column for column in vals.keys()]
     values = [vals[column].get() for column in vals]
 
-    placeholders = ', '.join(['?'] * len(values))  # For example, "?, ?, ?"
+    placeholders = ', '.join(['?'] * len(values))  
     query = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({placeholders})"
     
     # Execute the query with the values
@@ -107,16 +106,18 @@ def addData(vals, table):
 def deleteDataWin(root):
     delWin = CTkToplevel(root)
     delWin.title("Delete Data")
-    delWin.geometry("300x400")
+    delWin.geometry("200x100")
 
-    options = ["Table", "Row", "Column"]
+    options = ["Table", "Row", "All Rows", "Column"]
 
-    box = CTkComboBox(master=delWin, values=options, command=lambda value: delInputs(value, root))
+    box = CTkComboBox(master=delWin, values=options, command=lambda value: delInputs(value, root, delWin))
     box.pack(pady=5)
 
     return
 
-def delInputs(choice, root):
+def delInputs(choice, root, prevWin):
+    prevWin.destroy()
+    
     delWin = CTkToplevel(root)
     delWin.title("Delete Data")
     delWin.geometry("300x400")
@@ -127,6 +128,7 @@ def delInputs(choice, root):
     try:
         if choice == "Table":
             print (choice)
+            CTkLabel(master=delWin, text="Enter Table Name")
             tableEntry = CTkEntry(master=delWin, placeholder_text="What table do you want to delete?", textvariable=userInput)
             tableEntry.pack(pady=5)
 
@@ -135,23 +137,45 @@ def delInputs(choice, root):
         
         elif choice == "Row":
             print(choice)
+            CTkLabel(master=delWin, text="Enter Row Value")
             rowVal = CTkEntry(master=delWin, placeholder_text="What row do you want to delete?(Give primary key for row)", textvariable=userInput)
             rowVal.pack(pady=5)
 
+            CTkLabel(master=delWin, text="Enter Row Name For Primary Key")
             row = CTkEntry(master=delWin, placeholder_text="What table do you want to delete?", textvariable=row)
             row.pack(pady=5)
 
+            CTkLabel(master=delWin, text="Enter Table Name")
             table = CTkEntry(master=delWin, placeholder_text="What table do you want to delete?", textvariable=table)
             table.pack(pady=5)
             
-            submitBtn = CTkButton(master=delWin, text="Submit", command=lambda: delRow(table.get(), row.get(), userInput.get()))
+            submitBtn = CTkButton(master=delWin, text="Submit", command=lambda: delRow(table.get(), row.get(), userInput.get(), choice))
+            submitBtn.pack(pady=5)
+
+        elif choice == "All Rows":
+            print(choice)
+            CTkLabel(master=delWin, text="Enter Row Value")
+            rowVal = CTkEntry(master=delWin, placeholder_text="What Value Do You Want To Remove?", textvariable=userInput)
+            rowVal.pack(pady=5)
+
+            CTkLabel(master=delWin, text="Enter Column Name Where Value is Stored")
+            row = CTkEntry(master=delWin, placeholder_text="What do you want to delete?", textvariable=row)
+            row.pack(pady=5)
+
+            CTkLabel(master=delWin, text="Enter Table Name")
+            table = CTkEntry(master=delWin, placeholder_text="What table do you want to delete?", textvariable=table)
+            table.pack(pady=5)
+            
+            submitBtn = CTkButton(master=delWin, text="Submit", command=lambda: delRow(table.get(), row.get(), userInput.get(), choice))
             submitBtn.pack(pady=5)
 
         elif choice == "Column":
             print(choice)
+            CTkLabel(master=delWin, text="Enter Column Name")
             column = CTkEntry(master=delWin, placeholder_text="What column do you want to delete?", textvariable=userInput)
             column.pack(pady=5)
 
+            CTkLabel(master=delWin, text="Enter Table Name")
             table = CTkEntry(master=delWin, placeholder_text="What table do you want to delete?", textvariable=table)
             table.pack(pady=5)
             
@@ -161,25 +185,43 @@ def delInputs(choice, root):
     except Exception as e:
         print(f"Error {e}")
 
-def delRow(table, row, input):
+def delRow(table, row, input, choice):
     cursor = conn.cursor()
 
-    try:
-        if fileType == ".db":
-            print("SQL")
+    if choice == "Row":
+        try:
+            if fileType == ".db":
+                print("SQL")
 
-            cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
+                cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
 
-            cursor.execute()
+                cursor.execute()
 
-        elif fileType == ".accdb":
-            print("Access")
-            cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
+            elif fileType == ".accdb":
+                print("Access")
+                cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
 
-            cursor.commit()
-    
-    except Exception as e:
-        print(f"Error: {e}")
+                cursor.commit()
+        
+        except Exception as e:
+            print(f"Error: {e}")
+
+    elif choice == "All Rows":
+        try:
+            if fileType == ".db":
+                print("SQLite")
+                cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
+
+                cursor.execute()
+
+            elif fileType == ".accdb":
+                print("Access")
+                cursor.execute(f"DELETE FROM {table} WHERE {row} = ?", (input,))
+
+                cursor.commit()
+
+        except Exception as e:
+            print(f"Error: {e}")
     
 
 def delCol(table, input):
@@ -252,15 +294,19 @@ def editDataWin(root):
     editWin.geometry("400x300")
 
     # Create three entry boxes
+    CTkLabel(master=editWin, text="Enter Table Name").pack(pady=10)
     tableEntry = CTkEntry(editWin, textvariable=table, placeholder_text="Enter table name", font=("Arial", 14), width=250)
     tableEntry.pack(pady=10)
 
-    colEntry = CTkEntry(editWin, textvariable=col, placeholder_text="Enter row name", font=("Arial", 14), width=250)
+    CTkLabel(master=editWin, text="Enter Column Name").pack(pady=10)
+    colEntry = CTkEntry(editWin, textvariable=col, placeholder_text="Enter Column name", font=("Arial", 14), width=250)
     colEntry.pack(pady=10)
 
+    CTkLabel(master=editWin, text="Enter Value To Change").pack(pady=10)
     oldEntry = CTkEntry(editWin, textvariable=oldVal, placeholder_text="Enter old value", font=("Arial", 14), width=250)
     oldEntry.pack(pady=10)
 
+    CTkLabel(master=editWin, text="Enter New Value").pack(pady=10)
     newEntry = CTkEntry(editWin, textvariable=newVal, placeholder_text="Enter new value", font=("Arial", 14), width=250)
     newEntry.pack(pady=10)
 
@@ -284,7 +330,7 @@ def editData(table, col, oldVal, newVal, editWin):
     # This function is called after the user presses the Submit button
     print("Inside editData:")
     print(f"Table: {table}")  # Should print the table value entered
-    print(f"Row: {col}")
+    print(f"Column: {col}")
     print(f"Old Value: {oldVal}")  # Should print the old value entered
     print(f"New Value: {newVal}")  # Should print the new value entered
 

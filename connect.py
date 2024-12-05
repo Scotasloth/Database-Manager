@@ -1,6 +1,4 @@
-import os
 import sqlite3
-import sys
 import pyodbc
 
 def dbType(db, type):
